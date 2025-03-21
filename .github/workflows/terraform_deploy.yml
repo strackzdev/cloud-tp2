@@ -60,4 +60,4 @@ jobs:
 
       # Optionally, apply the Terraform plan (if needed)
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplann
+        run: terraform apply -auto-approve tfplan
