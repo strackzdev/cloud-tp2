@@ -35,5 +35,10 @@ jobs:
           name: terraform-plan
           path: tfplan
 
+      - name: Import Existing Resource (if exists)
+        continue-on-error: true
+        run: |
+          terraform import azurerm_resource_group.ci-cd-rg /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/ci-cd-resources || true
+
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
