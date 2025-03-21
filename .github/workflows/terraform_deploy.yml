@@ -2,43 +2,55 @@ name: 'Terraform Deploy'
 
 on:
   workflow_dispatch:
-
 jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: production
 
     steps:
-      - uses: actions/checkout@v3
+      # Checkout your repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - uses: hashicorp/setup-terraform@v2
+      # Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
 
-      - uses: azure/login@v1
+      # Authenticate with Azure using Service Principal credentials
+      - name: Set up Azure credentials
+        uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Create SSH Key File
+      # Initialize Terraform and run the plan
+      - name: Terraform Init & Plan
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
-          chmod 600 ~/.ssh/id_rsa.pub
+          terraform init \
+            -backend-config="storage_account_name=tfstate21895" \
+            -backend-config="container_name=tfstate" \
+            -backend-config="key=tfstate.tfstate" \
+            -backend-config="access_key=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
+          terraform plan -out=tfplan
 
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      - name: Upload Terraform Plan
-        uses: actions/upload-artifact@v4
+      # Upload the tfplan file to Azure Blob Storage
+      - name: Upload Terraform Plan to Azure Blob Storage
+        uses: azure/cli@v1
         with:
-          name: terraform-plan
-          path: tfplan
+          inlineScript: |
+            # Define variables
+            STORAGE_ACCOUNT_NAME="tfstate21895"
+            CONTAINER_NAME="tfstate"
+            PLAN_FILE="tfplan"
 
-      - name: Import Existing Resource (if exists)
-        continue-on-error: true
-        run: |
-          terraform import azurerm_resource_group.ci-cd-rg /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/resourceGroups/ci-cd-resources || true
+            # Upload the Terraform plan file to Azure Blob Storage
+            az storage blob upload \
+              --account-name $STORAGE_ACCOUNT_NAME \
+              --container-name $CONTAINER_NAME \
+              --name $PLAN_FILE \
+              --file $PLAN_FILE \
+              --auth-mode key \
+              --account-key ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
 
+      # Optionally, apply the Terraform plan (if needed)
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve tfplann
