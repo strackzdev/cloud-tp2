@@ -56,7 +56,8 @@ jobs:
               --name $PLAN_FILE \
               --file $PLAN_FILE \
               --auth-mode key \
-              --account-key ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+              --account-key ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }} \
+              --overwrite true
 
       # Optionally, apply the Terraform plan (if needed)
       - name: Terraform Apply
