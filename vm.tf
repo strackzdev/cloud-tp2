@@ -1,10 +1,10 @@
 # Virtual Machine
-resource "azurerm_linux_virtual_machine" "ci-cd-vm" {
+resource "azurerm_linux_virtual_machine" "ynov1-vm" {
   name                  = "${var.prefix}-vm"
-  location              = azurerm_resource_group.ci-cd-rg.location
-  resource_group_name   = azurerm_resource_group.ci-cd-rg.name
+  location              = azurerm_resource_group.ynov1-rg.location
+  resource_group_name   = azurerm_resource_group.ynov1-rg.name
   network_interface_ids = [
-    azurerm_network_interface.ci-cd-nic.id
+    azurerm_network_interface.ynov1-nic.id
   ]
   size                  = "Standard_D2s_v3"
   admin_username        = "adminuser"
@@ -35,5 +35,5 @@ resource "azurerm_linux_virtual_machine" "ci-cd-vm" {
 }
 
 output "vm_name" {
-  value = azurerm_linux_virtual_machine.ci-cd-vm.name
+  value = azurerm_linux_virtual_machine.ynov1-vm.name
 }
